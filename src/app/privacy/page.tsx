@@ -1,5 +1,4 @@
 'use client'
-
 import { motion } from 'framer-motion'
 import { Shield } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
