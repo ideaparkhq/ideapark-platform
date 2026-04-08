@@ -33,6 +33,7 @@ export default function DashboardPage() {
     if (!user) return
 
     async function loadDashboard() {
+      if (!user) return
       // Fetch recent ideas
       const { data: recentIdeas } = await supabase
         .from('ideas')
@@ -47,7 +48,7 @@ export default function DashboardPage() {
       const { data: userIdeas } = await supabase
         .from('ideas')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
         .limit(3)
 
@@ -57,17 +58,17 @@ export default function DashboardPage() {
       const { count: ideaCount } = await supabase
         .from('ideas')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
 
       const { count: matchCount } = await supabase
         .from('matches')
         .select('*', { count: 'exact', head: true })
-        .eq('builder_id', user.id)
+        .eq('builder_id', user!.id)
 
       const { count: unreadCount } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
-        .eq('receiver_id', user.id)
+        .eq('receiver_id', user!.id)
         .eq('read', false)
 
       setStats({
@@ -95,7 +96,7 @@ export default function DashboardPage() {
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
-              {getGreeting()}, {user.name?.split(' ')[0] || 'there'}
+              {getGreeting()}, {user!.name?.split(' ')[0] || 'there'}
               {user.is_founding_member && <Star className="inline w-5 h-5 text-amber-400 ml-2" />}
             </h1>
             <p className="text-dark-400">

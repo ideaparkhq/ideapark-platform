@@ -58,7 +58,7 @@ export default function OnboardingPage() {
           ai_credits: isFoundingMember ? 10 : 5,
           onboarding_completed: true,
         })
-        .eq('id', user.id)
+        .eq('id', user!.id)
 
       if (error) throw error
 

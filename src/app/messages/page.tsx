@@ -116,7 +116,7 @@ export default function MessagesPage() {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `receiver_id=eq.${user.id}`,
+          filter: `receiver_id=eq.${user!.id}`,
         },
         (payload) => {
           const newMsg = payload.new as Message
@@ -289,7 +289,7 @@ export default function MessagesPage() {
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <p className="text-xs text-dark-400 truncate flex-1">
-                      {conv.last_message_sender === user.id && (
+                      {conv.last_message_sender === user!.id && (
                         <span className="text-dark-500">You: </span>
                       )}
                       {conv.last_message_content || 'No messages yet'}
@@ -350,7 +350,7 @@ export default function MessagesPage() {
                 </div>
               )}
               {messages.map((msg, i) => {
-                const isOwn = msg.sender_id === user.id
+                const isOwn = msg.sender_id === user!.id
                 return (
                   <motion.div
                     key={msg.id}

@@ -75,7 +75,7 @@ export default function IdeaDetailPage() {
         .from('matches')
         .insert({
           idea_id: idea.id,
-          builder_id: user.id,
+          builder_id: user!.id,
           message: applyMessage || null,
           compatibility_score: calculateCompatibility(),
         })
