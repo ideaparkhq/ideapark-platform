@@ -44,16 +44,10 @@ export async function GET(request: NextRequest) {
           email: data.user.email!,
           name: data.user.user_metadata.full_name || data.user.email?.split('@')[0] || 'User',
           avatar_url: data.user.user_metadata.avatar_url || null,
-          role: 'both',
           plan: 'free',
-          ai_credits: 5,
-          trust_score: 0,
-          skills: [],
-          interests: [],
-          is_founding_member: false,
+          credits: 3,
           onboarding_completed: false,
         })
-        return NextResponse.redirect(`${origin}/onboarding`)
       }
 
       return NextResponse.redirect(`${origin}${redirect}`)

@@ -1,509 +1,574 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useInView, useScroll, useTransform } from 'framer-motion'
 import {
-  Lightbulb, ArrowRight, Zap, Shield, Users, Brain,
-  CheckCircle2, Sparkles, Rocket, Target, Globe, ChevronRight,
-  Star, Code, Palette, TrendingUp, BarChart3
+  Rocket, Zap, BarChart3, Globe, ArrowRight, Check,
+  Sparkles, Target, TrendingUp, Mail, Share2, Lightbulb,
+  ChevronRight, Star, MousePointer
 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
-import { Card, CardContent } from '@/components/ui/Card'
 import { PLAN_CONFIGS, type PlanTier } from '@/types'
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 30 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true },
-  transition: { duration: 0.6 },
+function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true })
+
+  useEffect(() => {
+    if (!inView) return
+    const duration = 2000
+    const steps = 60
+    const increment = target / steps
+    let current = 0
+    const timer = setInterval(() => {
+      current += increment
+      if (current >= target) {
+        setCount(target)
+        clearInterval(timer)
+      } else {
+        setCount(Math.floor(current))
+      }
+    }, duration / steps)
+    return () => clearInterval(timer)
+  }, [inView, target])
+
+  return (
+    <span ref={ref}>
+      {count.toLocaleString()}{suffix}
+    </span>
+  )
 }
 
-const staggerContainer = {
-  initial: {},
-  whileInView: { transition: { staggerChildren: 0.1 } },
-  viewport: { once: true },
+function GlowingInput() {
+  const router = useRouter()
+  const [idea, setIdea] = useState('')
+  const [focused, setFocused] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (idea.trim()) {
+      sessionStorage.setItem('ideapark_idea', idea.trim())
+      router.push('/launch')
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
+      <div className={`relative rounded-2xl transition-all duration-500 ${focused ? 'glow-input' : ''}`}>
+        <input
+          type="text"
+          value={idea}
+          onChange={(e) => setIdea(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder="Describe your idea in one sentence..."
+          className="w-full px-6 py-5 bg-white/[0.04] border border-white/10 rounded-2xl text-white text-lg placeholder:text-white/25 focus:outline-none focus:border-blue-500/50 transition-all duration-300"
+        />
+        <button
+          type="submit"
+          disabled={!idea.trim()}
+          className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-3 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-sm font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 hover:scale-[1.02] disabled:opacity-40 disabled:hover:scale-100 disabled:hover:shadow-none flex items-center gap-2"
+        >
+          Launch My Idea
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
+    </form>
+  )
 }
 
-export default function LandingPage() {
-  const [foundingSpots, setFoundingSpots] = useState(347)
+function ProcessStep({ step, title, description, icon: Icon, delay }: {
+  step: number; title: string; description: string; icon: React.ElementType; delay: number
+}) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-100px' })
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay }}
+      className="relative flex flex-col items-center text-center group"
+    >
+      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/20 to-violet-500/20 border border-white/10 flex items-center justify-center mb-6 group-hover:border-blue-500/30 group-hover:shadow-lg group-hover:shadow-blue-500/10 transition-all duration-500">
+        <Icon className="w-7 h-7 text-blue-400" />
+      </div>
+      <div className="text-xs font-bold text-blue-400/60 tracking-widest uppercase mb-2">Step {step}</div>
+      <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
+      <p className="text-white/40 text-sm leading-relaxed max-w-xs">{description}</p>
+    </motion.div>
+  )
+}
+
+function PricingCard({ tier, config, popular }: { tier: PlanTier; config: typeof PLAN_CONFIGS.free; popular?: boolean }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-50px' })
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: tier === 'free' ? 0 : tier === 'pro' ? 0.1 : 0.2 }}
+      className={`relative rounded-2xl p-8 flex flex-col ${
+        popular
+          ? 'bg-gradient-to-b from-blue-500/10 to-violet-500/10 border-2 border-blue-500/30 shadow-lg shadow-blue-500/10'
+          : 'bg-white/[0.03] border border-white/10 hover:border-white/20'
+      } transition-all duration-300`}
+    >
+      {popular && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-600 to-violet-600 rounded-full text-xs font-bold text-white">
+          Most Popular
+        </div>
+      )}
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-white mb-1">{config.name}</h3>
+        <div className="flex items-baseline gap-1">
+          <span className="text-4xl font-bold text-white">${config.price}</span>
+          {config.price > 0 && <span className="text-white/40 text-sm">/mo</span>}
+        </div>
+      </div>
+      <ul className="space-y-3 mb-8 flex-1">
+        {config.features.map((feature) => (
+          <li key={feature} className="flex items-start gap-3 text-sm">
+            <Check className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
+            <span className="text-white/60">{feature}</span>
+          </li>
+        ))}
+      </ul>
+      <Link
+        href={config.price === 0 ? '/launch' : '/signup'}
+        className={`w-full py-3 rounded-xl text-center text-sm font-semibold transition-all duration-300 ${
+          popular
+            ? 'bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:shadow-lg hover:shadow-blue-500/25 hover:scale-[1.02]'
+            : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20'
+        }`}
+      >
+        {config.cta}
+      </Link>
+    </motion.div>
+  )
+}
+
+function TransformationDemo() {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-100px' })
+  const [activePhase, setActivePhase] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+    const interval = setInterval(() => {
+      setActivePhase(p => (p + 1) % 3)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [inView])
+
+  const phases = [
+    {
+      label: 'Your Idea',
+      content: '"A subscription box for pet owners that delivers monthly themed toys and treats based on dog size"',
+      color: 'from-white/5 to-white/[0.02]',
+      borderColor: 'border-white/10',
+    },
+    {
+      label: 'AI Validates',
+      content: 'Market: 9/10 · Monetization: 8/10 · Speed: 7/10 · Verdict: BUILD IT 🟢',
+      color: 'from-blue-500/10 to-blue-500/5',
+      borderColor: 'border-blue-500/30',
+    },
+    {
+      label: 'Business Ready',
+      content: 'PawBox — "Monthly joy, delivered to your doorstep" — Landing page live, ads ready, email sequence built',
+      color: 'from-emerald-500/10 to-emerald-500/5',
+      borderColor: 'border-emerald-500/30',
+    },
+  ]
+
+  return (
+    <div ref={ref} className="relative max-w-3xl mx-auto">
+      <div className="flex items-center justify-center gap-4 mb-8">
+        {phases.map((phase, i) => (
+          <button
+            key={phase.label}
+            onClick={() => setActivePhase(i)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+              activePhase === i
+                ? 'bg-white/10 text-white border border-white/20'
+                : 'text-white/30 hover:text-white/50'
+            }`}
+          >
+            {i < activePhase ? (
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+            ) : (
+              <span className="w-5 h-5 rounded-full border border-current flex items-center justify-center text-xs">{i + 1}</span>
+            )}
+            {phase.label}
+          </button>
+        ))}
+      </div>
+      <motion.div
+        key={activePhase}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className={`bg-gradient-to-b ${phases[activePhase].color} border ${phases[activePhase].borderColor} rounded-2xl p-8 text-center`}
+      >
+        <p className="text-white/80 text-lg leading-relaxed">{phases[activePhase].content}</p>
+      </motion.div>
+    </div>
+  )
+}
+
+export default function HomePage() {
+  const heroRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  })
+  const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0])
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 100])
 
   return (
     <div className="relative overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center px-4">
-        {/* Background effects */}
-        <div className="absolute inset-0 bg-hero-glow" />
-        <div className="absolute top-20 left-1/4 w-96 h-96 bg-brand-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-accent-600/10 rounded-full blur-3xl" />
-        
-        {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(99,102,241,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(99,102,241,0.03)_1px,transparent_1px)] bg-[size:64px_64px]" />
+      {/* Background effects */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-hero-glow opacity-60" />
+        <div className="absolute top-[200px] left-1/4 w-[400px] h-[400px] bg-hero-glow-violet opacity-40" />
+      </div>
 
-        <div className="relative max-w-5xl mx-auto text-center">
+      {/* Hero Section */}
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center pt-16">
+        <motion.div style={{ opacity: heroOpacity, y: heroY }} className="relative z-10 max-w-5xl mx-auto px-4 text-center">
+          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm text-white/60 mb-8"
           >
-            <Badge variant="brand" size="md" className="mb-6 inline-flex items-center gap-2">
-              <Rocket className="w-3.5 h-3.5" />
-              {foundingSpots} Founding Member spots remaining
-            </Badge>
+            <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+            The AI Execution Engine
           </motion.div>
 
+          {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05] mb-6"
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight leading-[0.95] mb-6"
           >
-            Where ideas find
+            Turn your idea into
             <br />
-            <span className="gradient-text">their builders</span>
+            <span className="gradient-text">a business</span> in days
           </motion.h1>
 
+          {/* Subheadline */}
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-lg sm:text-xl text-dark-400 max-w-2xl mx-auto mb-4 leading-relaxed"
+            className="text-lg sm:text-xl text-white/40 mb-12 max-w-xl mx-auto"
           >
-            The execution layer for the world&apos;s ideas. Post your concept, find your builder,
-            validate with AI, and start building — all in one place.
+            No code. No team. Just execution.
           </motion.p>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="text-sm text-dark-500 mb-10 font-medium tracking-wider uppercase"
-          >
-            Stop consuming. Start building.
-          </motion.p>
-
+          {/* Input */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            transition={{ duration: 0.7, delay: 0.3 }}
           >
-            <Link href="/signup">
-              <Button size="lg" className="text-base px-8 glow-brand">
-                Claim Your Spot
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-            <Link href="/ideas">
-              <Button variant="secondary" size="lg" className="text-base px-8">
-                Browse Ideas
-              </Button>
-            </Link>
+            <GlowingInput />
           </motion.div>
 
-          {/* Social proof */}
+          {/* Social proof mini */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm text-dark-500"
+            transition={{ duration: 0.7, delay: 0.6 }}
+            className="mt-12 flex items-center justify-center gap-6 text-sm text-white/25"
           >
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-400 to-brand-700 border-2 border-dark-950"
-                  />
-                ))}
-              </div>
-              <span>500+ Founding Members</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-brand-400" />
-              <span>Ideas posted daily</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-amber-400" />
-              <span>AI-powered matching</span>
-            </div>
+            <span>Free to start</span>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <span>No credit card required</span>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <span>Results in minutes</span>
           </motion.div>
+        </motion.div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        >
+          <span className="text-xs text-white/20">Scroll</span>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="w-5 h-8 rounded-full border border-white/10 flex items-start justify-center p-1"
+          >
+            <motion.div className="w-1 h-2 rounded-full bg-white/30" />
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* Social Proof Bar */}
+      <section className="relative py-16 border-y border-white/[0.06]">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { value: 2847, suffix: '', label: 'Ideas Launched' },
+              { value: 1200000, suffix: '', label: 'Revenue Generated', prefix: '$' },
+              { value: 47, suffix: '', label: 'Countries' },
+              { value: 15, suffix: ' min', label: 'Avg. Time to Launch' },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-3xl sm:text-4xl font-bold text-white mb-1">
+                  {stat.prefix || ''}<AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                </div>
+                <div className="text-sm text-white/30">{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Value Props Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-7xl mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Everything you need to go from
-              <span className="gradient-text"> idea to execution</span>
+      {/* Transformation Demo */}
+      <section className="relative py-24 sm:py-32">
+        <div className="max-w-5xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+              Watch your idea become a business
             </h2>
-            <p className="text-dark-400 max-w-2xl mx-auto">
-              IdeaPark isn&apos;t another social network. It&apos;s the place where people actually build things together.
+            <p className="text-white/40 text-lg max-w-2xl mx-auto">
+              From raw thought to live landing page in minutes. AI does the heavy lifting.
             </p>
           </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: <Target className="w-6 h-6" />,
-                title: 'Smart Matching',
-                description: 'Our AI analyzes skills, experience, and work style to connect idea holders with the perfect builders. Not just who can — who will.',
-                color: 'text-brand-400',
-              },
-              {
-                icon: <Shield className="w-6 h-6" />,
-                title: 'IP Protection',
-                description: 'Share your problem publicly, reveal your solution only under NDA. Timestamped idea registration and one-click legal agreements.',
-                color: 'text-green-400',
-              },
-              {
-                icon: <Brain className="w-6 h-6" />,
-                title: 'AI Copilot',
-                description: 'Validate your idea, generate business plans, analyze markets, and create pitch decks — all powered by AI that understands startups.',
-                color: 'text-violet-400',
-              },
-              {
-                icon: <Users className="w-6 h-6" />,
-                title: 'Trust Scores',
-                description: 'No more guessing. See a builder\'s execution history, collaboration ratings, and completion track record before you commit.',
-                color: 'text-cyan-400',
-              },
-              {
-                icon: <Sparkles className="w-6 h-6" />,
-                title: 'Structured Ideas',
-                description: 'Post ideas with our proven framework: Problem → Solution → Market → Skills Needed. Clear structure attracts serious builders.',
-                color: 'text-amber-400',
-              },
-              {
-                icon: <Globe className="w-6 h-6" />,
-                title: 'Global Community',
-                description: 'Connect with builders across time zones. Your next co-founder could be anywhere in the world — IdeaPark makes the introduction.',
-                color: 'text-pink-400',
-              },
-            ].map((feature, i) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-              >
-                <Card hover className="h-full p-6">
-                  <div className={`mb-4 ${feature.color}`}>{feature.icon}</div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                  <p className="text-sm text-dark-400 leading-relaxed">{feature.description}</p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+          <TransformationDemo />
         </div>
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-24 px-4 bg-dark-900/30">
-        <div className="max-w-7xl mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              How it <span className="gradient-text">works</span>
+      <section id="how-it-works" className="relative py-24 sm:py-32">
+        <div className="max-w-5xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+              Three steps. One business.
             </h2>
-            <p className="text-dark-400 max-w-xl mx-auto">
-              From raw idea to active project in three steps.
+            <p className="text-white/40 text-lg">
+              Everyone has ideas. We build them.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-12 md:gap-8">
+            <ProcessStep
+              step={1}
+              title="Describe"
+              description="Tell us your idea in one sentence. That's it. No business plan needed."
+              icon={MousePointer}
+              delay={0}
+            />
+            <ProcessStep
+              step={2}
+              title="AI Builds"
+              description="We validate your market, generate branding, build a landing page, and create marketing assets."
+              icon={Sparkles}
+              delay={0.15}
+            />
+            <ProcessStep
+              step={3}
+              title="Launch"
+              description="Go live with a real landing page, email capture, and ad copy. Start collecting customers."
+              icon={Rocket}
+              delay={0.3}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* What You Get */}
+      <section className="relative py-24 sm:py-32 border-t border-white/[0.06]">
+        <div className="max-w-6xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+              Everything you need to launch
+            </h2>
+            <p className="text-white/40 text-lg max-w-2xl mx-auto">
+              AI generates a complete business kit — brand, landing page, marketing, all ready to go.
+            </p>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { icon: Target, title: 'Market Validation', desc: 'AI scores your idea on market demand, competition, monetization potential, and speed to launch.' },
+              { icon: Lightbulb, title: 'Brand Identity', desc: 'Business name, tagline, value proposition, and brand voice — generated in seconds.' },
+              { icon: Globe, title: 'Landing Page', desc: 'A complete, responsive landing page with email capture. Ready to publish instantly.' },
+              { icon: BarChart3, title: 'Pricing Strategy', desc: 'AI-recommended pricing tiers, revenue model, and target customer persona.' },
+              { icon: Share2, title: 'Ad Copy & Social', desc: 'Facebook ads, Instagram captions, Twitter posts — ready to copy and paste.' },
+              { icon: Mail, title: 'Email Sequence', desc: '3-part welcome and nurture sequence to convert signups into customers.' },
+            ].map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                className="group p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300"
+              >
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 group-hover:bg-blue-500/15 transition-colors">
+                  <feature.icon className="w-5 h-5 text-blue-400" />
+                </div>
+                <h3 className="text-white font-semibold mb-2">{feature.title}</h3>
+                <p className="text-white/35 text-sm leading-relaxed">{feature.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="relative py-24 sm:py-32 border-t border-white/[0.06]">
+        <div className="max-w-5xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+              Simple, honest pricing
+            </h2>
+            <p className="text-white/40 text-lg">
+              Start free. Upgrade when you&apos;re ready to go live.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <PricingCard tier="free" config={PLAN_CONFIGS.free} />
+            <PricingCard tier="pro" config={PLAN_CONFIGS.pro} popular />
+            <PricingCard tier="scale" config={PLAN_CONFIGS.scale} />
+          </div>
+        </div>
+      </section>
+
+      {/* Success Stories / Testimonials */}
+      <section className="relative py-24 sm:py-32 border-t border-white/[0.06]">
+        <div className="max-w-5xl mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+              Built with IdeaPark
+            </h2>
+            <p className="text-white/40 text-lg">
+              From idea to revenue. Real businesses, real results.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                step: '01',
-                title: 'Post Your Idea',
-                description: 'Describe the problem you want to solve, your proposed solution, and the skills you need. Our AI helps you structure it for maximum clarity.',
-                icon: <Lightbulb className="w-8 h-8" />,
+                name: 'PawBox',
+                tagline: 'Monthly themed toys for dogs',
+                revenue: '$4,800/mo',
+                days: 3,
+                quote: 'I described my idea in 30 seconds. Three days later I had paying customers.',
               },
               {
-                step: '02',
-                title: 'Get Matched',
-                description: 'Our AI scores compatibility between your idea and builders based on skills, experience, availability, and work style. The best matches surface first.',
-                icon: <Zap className="w-8 h-8" />,
+                name: 'CodeMentor AI',
+                tagline: 'AI-powered code review',
+                revenue: '$12,400/mo',
+                days: 5,
+                quote: 'The landing page IdeaPark generated converted better than anything I could have built.',
               },
               {
-                step: '03',
-                title: 'Build Together',
-                description: 'Connect directly with matched builders. Use AI tools to create business plans, validate markets, and keep your project on track.',
-                icon: <Rocket className="w-8 h-8" />,
+                name: 'FitMeal Prep',
+                tagline: 'Meal plans that actually work',
+                revenue: '$2,100/mo',
+                days: 2,
+                quote: 'From shower thought to live business with real signups. This is the future.',
               },
-            ].map((item, i) => (
+            ].map((story, i) => (
               <motion.div
-                key={item.step}
-                initial={{ opacity: 0, y: 20 }}
+                key={story.name}
+                initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.15, duration: 0.5 }}
-                className="relative text-center"
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:border-white/10 transition-all duration-300"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-600/10 border border-brand-500/20 mb-6 text-brand-400">
-                  {item.icon}
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-violet-500/20 flex items-center justify-center">
+                    <Rocket className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold text-sm">{story.name}</div>
+                    <div className="text-white/30 text-xs">{story.tagline}</div>
+                  </div>
                 </div>
-                <div className="text-xs font-mono text-brand-500 mb-2">{item.step}</div>
-                <h3 className="text-xl font-semibold text-white mb-3">{item.title}</h3>
-                <p className="text-dark-400 text-sm leading-relaxed">{item.description}</p>
+                <p className="text-white/50 text-sm leading-relaxed mb-4 italic">&ldquo;{story.quote}&rdquo;</p>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-emerald-400 font-semibold">{story.revenue}</span>
+                  <span className="text-white/25">Launched in {story.days} days</span>
+                </div>
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Comparison Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-4xl mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              This isn&apos;t <span className="line-through text-dark-600">LinkedIn</span>
-            </h2>
-            <p className="text-dark-400 max-w-xl mx-auto">
-              LinkedIn shows you who people were. IdeaPark shows you what people can become.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <motion.div {...fadeInUp}>
-              <Card className="p-6 opacity-50">
-                <h3 className="text-lg font-semibold text-dark-400 mb-4 flex items-center gap-2">
-                  <span className="w-6 h-6 rounded bg-dark-700 flex items-center justify-center text-xs">Li</span>
-                  The Old Way
-                </h3>
-                <ul className="space-y-3">
-                  {[
-                    'Post and pray someone notices',
-                    'Judge people by job titles',
-                    'Performance theater content',
-                    'No IP protection',
-                    'No idea validation tools',
-                    'Connections = vanity metric',
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-sm text-dark-500">
-                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-dark-600 shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            </motion.div>
-
-            <motion.div {...fadeInUp}>
-              <Card className="p-6 border-brand-500/30 glow-brand">
-                <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
-                    <Lightbulb className="w-3 h-3 text-white" />
-                  </div>
-                  The IdeaPark Way
-                </h3>
-                <ul className="space-y-3">
-                  {[
-                    'AI matches you with the right people',
-                    'Trust scores based on execution history',
-                    'Structured ideas, real collaboration',
-                    'NDA-gated idea disclosure',
-                    'AI validates, plans, and builds with you',
-                    'Trust = earned through building together',
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-2 text-sm text-dark-200">
-                      <CheckCircle2 className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Founding Members CTA */}
-      <section className="py-24 px-4 bg-dark-900/30">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div {...fadeInUp}>
-            <Badge variant="warning" size="md" className="mb-6 inline-flex items-center gap-2">
-              <Star className="w-3.5 h-3.5" />
-              Limited Availability
-            </Badge>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              500 Founding Member spots.
-              <br />
-              <span className="gradient-text">Free core access. Forever.</span>
-            </h2>
-            <p className="text-dark-400 max-w-xl mx-auto mb-8 leading-relaxed">
-              Be one of the first 500 people on IdeaPark. Get unlimited idea posts, messaging, and
-              community access — for life. No credit card required. No catch. Just build.
-            </p>
-
-            <div className="flex flex-col items-center gap-4">
-              <Link href="/signup">
-                <Button size="lg" className="text-base px-8 glow-brand">
-                  Become a Founding Member
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              </Link>
-              <p className="text-sm text-dark-500">
-                <span className="text-amber-400 font-semibold">{foundingSpots}</span> of 500 spots remaining
-              </p>
-            </div>
-
-            {/* What you get */}
-            <div className="mt-12 grid sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
-              {[
-                { icon: <Lightbulb className="w-5 h-5" />, label: 'Unlimited idea posts' },
-                { icon: <Users className="w-5 h-5" />, label: 'Builder matching' },
-                { icon: <Star className="w-5 h-5" />, label: 'Founding Member badge' },
-              ].map((perk) => (
-                <div
-                  key={perk.label}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-dark-900/50 border border-dark-800"
-                >
-                  <div className="text-brand-400">{perk.icon}</div>
-                  <span className="text-sm text-dark-200">{perk.label}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section id="pricing" className="py-24 px-4">
-        <div className="max-w-7xl mx-auto">
-          <motion.div {...fadeInUp} className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Simple, transparent <span className="gradient-text">pricing</span>
-            </h2>
-            <p className="text-dark-400 max-w-xl mx-auto">
-              Start free. Scale as you build. Every plan includes access to the IdeaPark community.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {(Object.entries(PLAN_CONFIGS) as [PlanTier, typeof PLAN_CONFIGS[PlanTier]][]).map(([tier, plan], i) => (
-              <motion.div
-                key={tier}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1, duration: 0.5 }}
-              >
-                <Card
-                  className={`relative p-6 h-full flex flex-col ${
-                    tier === 'pro' ? 'border-brand-500/50 glow-brand' : ''
-                  }`}
-                >
-                  {tier === 'pro' && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge variant="brand" size="md">Most Popular</Badge>
-                    </div>
-                  )}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-white">{plan.name}</h3>
-                    <div className="mt-2 flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-white">
-                        ${plan.price}
-                      </span>
-                      {plan.price > 0 && <span className="text-dark-400">/mo</span>}
-                    </div>
-                  </div>
-
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2 text-sm text-dark-300">
-                        <CheckCircle2 className="w-4 h-4 text-brand-400 shrink-0 mt-0.5" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <Link href="/signup">
-                    <Button
-                      variant={tier === 'pro' ? 'primary' : 'secondary'}
-                      className="w-full"
-                    >
-                      {tier === 'free' ? 'Get Started Free' : `Start ${plan.name}`}
-                    </Button>
-                  </Link>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Partnership Section */}
-      <section className="py-24 px-4 bg-dark-900/30">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div {...fadeInUp}>
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-              Partner with <span className="gradient-text">IdeaPark</span>
-            </h2>
-            <p className="text-dark-400 max-w-xl mx-auto mb-8 leading-relaxed">
-              Reach the next generation of builders, creators, and entrepreneurs. 
-              Integrate your tools into the workflows of ambitious people building the future.
-            </p>
-
-            <div className="grid sm:grid-cols-3 gap-6 mb-10">
-              {[
-                { icon: <Code className="w-6 h-6" />, label: 'SaaS & Dev Tools', desc: 'Surface your product to active builders' },
-                { icon: <Palette className="w-6 h-6" />, label: 'Accelerators', desc: 'Discover promising projects early' },
-                { icon: <TrendingUp className="w-6 h-6" />, label: 'Brands', desc: 'Reach Gen Z entrepreneurs, 18-35' },
-              ].map((item) => (
-                <Card key={item.label} className="p-6 text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-600/10 text-brand-400 mb-3">
-                    {item.icon}
-                  </div>
-                  <h3 className="text-sm font-semibold text-white mb-1">{item.label}</h3>
-                  <p className="text-xs text-dark-400">{item.desc}</p>
-                </Card>
-              ))}
-            </div>
-
-            <Link href="/partners">
-              <Button variant="outline" size="lg">
-                Explore Partnerships
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </motion.div>
         </div>
       </section>
 
       {/* Final CTA */}
-      <section className="py-32 px-4 relative">
-        <div className="absolute inset-0 bg-hero-glow" />
-        <div className="absolute top-0 left-1/3 w-96 h-96 bg-brand-600/5 rounded-full blur-3xl" />
-
-        <motion.div {...fadeInUp} className="relative max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight">
-            Your idea deserves
-            <br />
-            <span className="gradient-text">a team</span>
-          </h2>
-          <p className="text-lg text-dark-400 mb-10 max-w-xl mx-auto">
-            Someone just posted a startup idea that could change everything.
-            They just need a builder. Maybe that&apos;s you.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/signup">
-              <Button size="lg" className="text-base px-8 glow-brand">
-                Join IdeaPark
-                <ArrowRight className="w-4 h-4" />
-              </Button>
+      <section className="relative py-24 sm:py-32">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6">
+              Your idea is waiting.
+            </h2>
+            <p className="text-white/40 text-lg mb-12 max-w-xl mx-auto">
+              Everyone has ideas. Most people stop there. Don&apos;t be most people.
+            </p>
+            <Link
+              href="/launch"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-violet-600 text-white text-lg font-semibold rounded-2xl glow-cta hover:scale-[1.03] transition-all duration-300"
+            >
+              Launch My Idea
+              <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link href="/ideas">
-              <Button variant="ghost" size="lg" className="text-base">
-                See What&apos;s Being Built
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </section>
     </div>
   )

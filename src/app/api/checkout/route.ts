@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
         product_id: product.id,
         type: 'product_purchase',
       },
-      success_url: `${origin}/store?success=true`,
-      cancel_url: `${origin}/store?canceled=true`,
+      success_url: `${origin}/dashboard?success=true`,
+      cancel_url: `${origin}/pricing?canceled=true`,
     })
 
     return NextResponse.json({ url: session.url })

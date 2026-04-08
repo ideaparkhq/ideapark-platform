@@ -41,13 +41,8 @@ export default function SignupPage() {
           id: data.user!.id,
           email,
           name,
-          role: 'both',
           plan: 'free',
-          ai_credits: 5,
-          trust_score: 0,
-          skills: [],
-          interests: [],
-          is_founding_member: false,
+          credits: 3,
           onboarding_completed: false,
         })
 
