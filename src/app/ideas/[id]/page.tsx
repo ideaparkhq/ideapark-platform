@@ -366,7 +366,7 @@ export default function IdeaDetailPage() {
                     <h3 className="font-semibold text-white">AI Idea Validator</h3>
                   </div>
                   <p className="text-sm text-dark-400 mb-4">
-                    Get an instant AI-powered analysis of your idea's viability.
+                    Get an instant AI-powered analysis of your idea&apos;s viability.
                   </p>
                   <Link href="/ai">
                     <Button variant="outline" className="w-full gap-2" size="sm">
@@ -389,7 +389,7 @@ export default function IdeaDetailPage() {
       >
         <div className="space-y-4">
           <p className="text-dark-400 text-sm">
-            Tell the idea owner why you're the right builder for this project.
+            Tell the idea owner why you&apos;re the right builder for this project.
           </p>
           {compatibility !== null && (
             <div className="flex items-center gap-2 text-sm">
