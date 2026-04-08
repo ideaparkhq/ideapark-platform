@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dark-950 text-white antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  ::selection {
+    @apply bg-brand-600/30 text-white;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-dark-600;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-400 via-brand-300 to-accent-400;
+  }
+
+  .gradient-border {
+    @apply border border-transparent;
+    background-clip: padding-box;
+    border-image: linear-gradient(135deg, theme('colors.brand.500'), theme('colors.accent.500')) 1;
+  }
+
+  .glass {
+    @apply bg-dark-900/50 backdrop-blur-xl border border-dark-800;
+  }
+
+  .glass-hover {
+    @apply hover:bg-dark-900/80 hover:border-dark-700 transition-all duration-300;
+  }
+
+  .glow-brand {
+    box-shadow: 0 0 40px -10px theme('colors.brand.500');
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 40px -10px theme('colors.accent.500');
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 8s ease infinite;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
