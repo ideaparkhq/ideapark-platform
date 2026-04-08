@@ -230,7 +230,7 @@ export default function MessagesPage() {
       <div
         className={cn(
           'w-full md:w-80 lg:w-96 border-r border-dark-800 flex flex-col bg-dark-950',
-          !showMobileList && 'hidden md:flex'
+          !showMobileList ? 'hidden md:flex' : ''
         )}
       >
         {/* Header */}
@@ -269,7 +269,7 @@ export default function MessagesPage() {
                 onClick={() => selectConversation(conv.other_user_id)}
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3 hover:bg-dark-900 transition-colors text-left',
-                  selectedPartner === conv.other_user_id && 'bg-dark-900 border-l-2 border-brand-500'
+                  selectedPartner === conv.other_user_id ? 'bg-dark-900 border-l-2 border-brand-500' : ''
                 )}
               >
                 <Avatar
@@ -311,7 +311,7 @@ export default function MessagesPage() {
       <div
         className={cn(
           'flex-1 flex flex-col bg-dark-950',
-          showMobileList && 'hidden md:flex'
+          showMobileList ? 'hidden md:flex' : ''
         )}
       >
         {selectedPartner && partnerProfile ? (

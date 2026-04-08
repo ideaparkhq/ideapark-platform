@@ -26,7 +26,7 @@ export function SkillTag({ skill, removable, onRemove, selected, onClick, size =
         selected
           ? 'bg-brand-600/20 text-brand-400 border-brand-500/30'
           : 'bg-dark-800 text-dark-300 border-dark-700',
-        onClick && 'cursor-pointer hover:border-brand-500/50 hover:text-brand-400'
+        onClick ? 'cursor-pointer hover:border-brand-500/50 hover:text-brand-400' : ''
       )}
       onClick={onClick}
     >

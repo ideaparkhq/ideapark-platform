@@ -24,7 +24,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             'focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             'min-h-[100px] resize-y',
-            error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
+            error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '',
             className
           )}
           {...props}
