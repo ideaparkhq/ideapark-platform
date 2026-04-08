@@ -1,6 +1,4 @@
-import { type ClassValue, clsx } from 'clsx'
-
-// Lightweight cn utility (no clsx dependency needed — inline implementation)
+// Lightweight cn utility — no external dependency needed
 export function cn(...inputs: (string | undefined | null | false | Record<string, boolean>)[]) {
   return inputs
     .flatMap((input) => {
