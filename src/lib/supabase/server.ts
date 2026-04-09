@@ -4,8 +4,8 @@ import { cookies } from 'next/headers'
 export function createServerSupabaseClient() {
   const cookieStore = cookies()
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xleefaicvzrjqrhabgwj.supabase.co'
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZWVmYWljdnpyanFyaGFiZ3dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzEzNTUsImV4cCI6MjA5MTI0NzM1NX0.NmUD_78wsGZWa14nXNSJJfF7UBdGIlBAPgLkgfdrXTQ'
+  const url = 'https://xleefaicvzrjqrhabgwj.supabase.co'
+  const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZWVmYWljdnpyanFyaGFiZ3dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzEzNTUsImV4cCI6MjA5MTI0NzM1NX0.NmUD_78wsGZWa14nXNSJJfF7UBdGIlBAPgLkgfdrXTQ'
   
   return createServerClient(
     url,
@@ -37,7 +37,7 @@ export function createServerSupabaseClient() {
 export function createServiceRoleClient() {
   const { createClient } = require('@supabase/supabase-js')
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    'https://xleefaicvzrjqrhabgwj.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZWVmYWljdnpyanFyaGFiZ3dqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTY3MTM1NSwiZXhwIjoyMDkxMjQ3MzU1fQ.6nlEaJ_4kkrvMILnRDaqBmY_VMZRsDiE4a0klFl_mAI'
   )
 }
